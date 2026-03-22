@@ -235,8 +235,8 @@ ssh ubuntu@your-instance
 # 2. Crontab 편집
 crontab -e
 
-# 3. 다음 줄 추가 (매일 오전 6:30 한국 시간)
-0 6 * * * cd /path/to/mlb-predictor && python scheduler.py >> scheduler.log 2>&1
+# 3. 다음 줄 추가 (매일 밤 11:00 경기 전날)
+23 * * * cd /path/to/money-ball && python scheduler.py >> scheduler.log 2>&1
 
 # 4. Crontab 확인
 crontab -l
