@@ -1,0 +1,22 @@
+{
+  "version": "2024",
+  "model_type": "MLP_Tuned",
+  "architecture": "[6, 224, 64, 16, 1]",
+  "best_hyperparameters": {
+    "hidden1": 224,
+    "hidden2": 64,
+    "hidden3": 16,
+    "dropout_rate": 0.3052699079536471,
+    "lr": 0.0007591104805282694
+  },
+  "season_start": "2024-03-20",
+  "train_end": "2024-09-30",
+  "lookback": 10,
+  "samples": 2464,
+  "features": 6,
+  "n_trials": 10,
+  "auc": 0.5789267516764349,
+  "log_loss": 0.6867069646240642,
+  "brier_score": 0.24680323898792267,
+  "created_at": "2026-03-22T14:56:01.450190"
+}

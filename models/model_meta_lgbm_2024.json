@@ -1,0 +1,14 @@
+{
+  "version": "2024",
+  "model_type": "LightGBM",
+  "season_start": "2024-03-20",
+  "train_end": "2024-09-30",
+  "lookback": 10,
+  "samples": 2464,
+  "features": 6,
+  "num_boost_round": 200,
+  "auc": 0.8909102909340515,
+  "log_loss": 0.5126148016251547,
+  "brier_score": 0.16567336584097772,
+  "created_at": "2026-03-22T14:53:19.827084"
+}
