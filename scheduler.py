@@ -227,14 +227,14 @@ class MLBScheduler:
         logger.info("\n" + "="*70)
         logger.info("🚀 MLB 예측 스케줄러 시작")
         logger.info("="*70)
-        logger.info(f"⏰ 실행 시간: 매일 오전 9:00 (게임 시작 1시간 전)")
+        logger.info(f"⏰ 실행 시간: 매일 오전 6:30 (게임 시작 30분~1시간 전)")
         logger.info(f"📁 모델 디렉토리: {self.models_dir}")
         logger.info(f"📊 예측 저장 디렉토리: {self.predictions_dir}")
         logger.info("="*70 + "\n")
         
-        # 매일 오전 9:00에 실행 (한국 기준)
-        # 참고: 한국 시간 오전 9:00 = UTC 자정
-        trigger = CronTrigger(hour=9, minute=0, timezone="Asia/Seoul")
+        # 매일 오전 6:30에 실행 (한국 기준)
+        # 첫 경기 시작(한국 시간 오전 7:00~8:00) 30분~1시간 전에 예측 완료
+        trigger = CronTrigger(hour=6, minute=30, timezone="Asia/Seoul")
         self.scheduler.add_job(
             self.daily_task,
             trigger=trigger,
