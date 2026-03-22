@@ -1,0 +1,15 @@
+# .dockerignore - Docker 빌드에서 제외할 파일들
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+.git
+.gitignore
+.DS_Store
+*.log
+.pytest_cache/
+compare_out/

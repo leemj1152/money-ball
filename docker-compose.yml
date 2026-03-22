@@ -1,0 +1,41 @@
+# docker-compose.yml - Docker Compose 설정
+version: '3.8'
+
+services:
+  # Streamlit 웹 앱
+  streamlit:
+    build: .
+    container_name: mlb-predictor-app
+    command: streamlit run app.py --server.port=8502 --server.address=0.0.0.0
+    ports:
+      - "8502:8502"
+    volumes:
+      - ./models:/app/models
+      - ./predictions:/app/predictions
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  # 자동 스케줄러
+  scheduler:
+    build: .
+    container_name: mlb-predictor-scheduler
+    command: python scheduler.py
+    volumes:
+      - ./models:/app/models
+      - ./predictions:/app/predictions
+      - ./logs:/app/logs
+      - ./scheduler.log:/app/scheduler.log
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Seoul
+    restart: unless-stopped
+
+volumes:
+  models:
+    driver: local
+  predictions:
+    driver: local
+  logs:
+    driver: local
