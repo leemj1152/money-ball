@@ -1,6 +1,7 @@
 # train_lgbm_roll.py
 from __future__ import annotations
 import argparse, os, json
+from datetime import datetime
 import numpy as np
 import pandas as pd
 from joblib import dump
@@ -12,7 +13,7 @@ from sklearn.feature_selection import VarianceThreshold
 from lightgbm import LGBMClassifier
 import lightgbm as lgb  # callbacks 사용
 
-from data_fetch import fetch_schedule
+from data_fetch import fetch_schedule, fetch_pitcher_stats
 from rolling_features_1 import build_training_set_rolling
 
 
@@ -76,8 +77,15 @@ def main():
     print(f"[Data] fetch schedule {args.season_start} ~ {args.train_end}")
     df_games = fetch_schedule(args.season_start, args.train_end)
 
+    season = pd.to_datetime(args.train_end).year
+    print(f"[Data] fetch pitcher stats for season {season}")
+    df_pitcher = fetch_pitcher_stats(season)
+    print(f"[Data] pitcher stats rows: {len(df_pitcher)}")
+
     print(f"[Feature] build rolling training set up to {args.train_end}")
-    X, y, merged = build_training_set_rolling(df_games, args.train_end, lookback=args.lookback)
+    X, y, merged = build_training_set_rolling(
+        df_games, args.train_end, lookback=args.lookback, df_pitcher=df_pitcher
+    )
     if X.empty:
         raise SystemExit("No rows in training set")
 
@@ -160,9 +168,30 @@ def main():
 
         print(f"[CV{fold}] logloss={ll:.4f}  auc={auc:.4f}  brier={br:.4f}  best_th={best_th:.3f} acc={best_acc:.4f}")
 
-    print(f"[CV] mean  logloss={np.mean(ll_list):.4f}  auc={np.nanmean(auc_list):.4f}  brier={np.mean(br_list):.4f}")
+    current_auc = float(np.nanmean(auc_list))
+    current_ll = float(np.mean(ll_list))
+    current_brier = float(np.mean(br_list))
+    print(f"[CV] mean  logloss={current_ll:.4f}  auc={current_auc:.4f}  brier={current_brier:.4f}")
     global_th = float(np.mean(th_list))
     print(f"[THR] mean best_th (to use in app) = {global_th:.3f}")
+
+    meta_path = os.path.join(args.models_dir, "model_meta_lgbm.json")
+    existing_auc = None
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                existing_meta = json.load(f)
+            existing_auc = float(existing_meta.get("cv_auc", np.nan))
+        except Exception:
+            existing_auc = None
+
+    if existing_auc is not None:
+        print(f"[Compare] current CV AUC={current_auc:.4f}, existing CV AUC={existing_auc:.4f}")
+        if current_auc <= existing_auc + 1e-4:
+            print("[Skip] 기존 모델 성능보다 향상되지 않았으므로 저장하지 않습니다.")
+            return
+    else:
+        print("[Compare] 저장된 이전 메타가 없어 새 모델을 저장합니다.")
 
     # 전체 재학습 (조기종료/로그 콜백 포함)
     base.fit(
@@ -197,7 +226,19 @@ def main():
         json.dump(feats, f, ensure_ascii=False, indent=2)
     with open(os.path.join(args.models_dir, "threshold_lgbm.json"), "w", encoding="utf-8") as f:
         json.dump({"threshold": global_th}, f)
-    print("[Save] model_lgbm_calibrated.joblib / scaler_lgbm.joblib / feature_cols_lgbm.json / threshold_lgbm.json")
+
+    meta = {
+        "cv_auc": current_auc,
+        "mean_logloss": current_ll,
+        "mean_brier": current_brier,
+        "threshold": global_th,
+        "features": len(feats),
+        "created_at": datetime.now().isoformat(),
+    }
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
+
+    print("[Save] model_lgbm_calibrated.joblib / scaler_lgbm.joblib / feature_cols_lgbm.json / threshold_lgbm.json / model_meta_lgbm.json")
 
 
 if __name__ == "__main__":

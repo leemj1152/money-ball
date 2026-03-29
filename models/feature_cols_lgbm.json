@@ -8,5 +8,12 @@
   "diff_ewm_ga",
   "diff_diff_avg_lb",
   "diff_b2b",
-  "diff_days_since_prev"
+  "diff_days_since_prev",
+  "diff_sp_era",
+  "diff_sp_whip",
+  "diff_sp_strikeouts",
+  "diff_sp_wins",
+  "diff_rp_saves",
+  "diff_rp_era",
+  "diff_rp_whip"
 ]

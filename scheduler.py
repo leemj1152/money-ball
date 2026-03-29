@@ -15,8 +15,9 @@ import logging
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from data_fetch import fetch_schedule
+from data_fetch import build_game_level_pitching_features, fetch_schedule
 from rolling_features_1 import build_game_features_from_history
+from statcast_features import build_game_level_statcast_features
 from train_historical import train_model
 from model_manager import ModelManager
 import torch
@@ -182,7 +183,17 @@ class MLBScheduler:
                 return
             
             # 피처 생성
-            Xfeat, merged = build_game_features_from_history(df_hist, date_str, lookback=10)
+            df_game_context = build_game_level_pitching_features(df_hist).merge(
+                build_game_level_statcast_features(df_hist, lookback=10),
+                on="gamePk",
+                how="outer",
+            )
+            Xfeat, merged = build_game_features_from_history(
+                df_hist,
+                date_str,
+                lookback=10,
+                df_game_context=df_game_context,
+            )
             
             if Xfeat.empty:
                 logger.warning(f"⚠️ 피처 생성 실패: {date_str}")

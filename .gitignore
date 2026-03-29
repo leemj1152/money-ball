@@ -50,6 +50,7 @@ predictions/
 logs/
 scheduler.log
 compare_out/
+data_cache/
 
 # 민감 정보
 .env
